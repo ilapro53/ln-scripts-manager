@@ -1,0 +1,70 @@
+#!/bin/bash
+
+usage() {
+    echo "Использование: $0 <менеджер> <команда> <пакеты>"
+    echo "Команды: install, remove, list"
+    echo "Менеджеры: pacman, yay, snap"
+    echo "Пример: $0 pacman install vim,git,nano"
+    echo "        $0 yay list"
+    exit 1
+}
+
+MANAGER="$1"
+CMD="$2"
+PKGS="$3"
+
+IFS=',' read -ra PACKAGES <<< "$PKGS"
+
+case "$MANAGER" in
+    pacman)
+        case "$CMD" in
+            install)
+                sudo pacman -S "${PACKAGES[@]}"
+                ;;
+            remove)
+                sudo pacman -Rns "${PACKAGES[@]}"
+                ;;
+            list)
+                pacman -Qq
+                ;;
+            *)
+                usage
+                ;;
+        esac
+        ;;
+    yay)
+        case "$CMD" in
+            install)
+                yay -S "${PACKAGES[@]}"
+                ;;
+            remove)
+                yay -Rns "${PACKAGES[@]}"
+                ;;
+            list)
+                yay -Qq
+                ;;
+            *)
+                usage
+                ;;
+        esac
+        ;;
+    snap)
+        case "$CMD" in
+            install)
+                sudo snap install "${PACKAGES[@]}"
+                ;;
+            remove)
+                sudo snap remove "${PACKAGES[@]}"
+                ;;
+            list)
+                snap list | tail -n +2 | awk '{print $1}'
+                ;;
+            *)
+                usage
+                ;;
+        esac
+        ;;
+    *)
+        usage
+        ;;
+esac
