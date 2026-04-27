@@ -8,13 +8,14 @@ case "$1" in
         echo "Использование: $0 [команда]"
         echo "Команды:"
         echo "  -h, --help              Показать справку"
-        echo "  --create <название>    Создать/редактировать скрипт (через nano)"
+        echo "  -c, -e, --create, --edit <название>  Создать/редактировать скрипт"
         echo "  --record <название>    Записать команды в файл"
         exit 0
         ;;
-    --create)
+    -c|-e|--create|--edit)
         if [ -z "$2" ]; then echo "Укажите имя"; exit 1; fi
         FILE="$SCRIPTS_DIR/$2.sh"
+        mkdir -p "$(dirname "$FILE")"
         [ ! -f "$FILE" ] && echo "#!/bin/bash" > "$FILE"
         nano "$FILE"
         chmod +x "$FILE"
@@ -25,6 +26,7 @@ case "$1" in
             exit 1
         fi
         FILE="$SCRIPTS_DIR/$2.sh"
+        mkdir -p "$(dirname "$FILE")"
         TMP_HIST=$(mktemp)
         WRAPPER=$(mktemp)
         
