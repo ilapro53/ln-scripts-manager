@@ -26,6 +26,7 @@ case "$1" in
         echo "  -c, -e, --create, --edit <название>  Создать/редактировать скрипт"
         echo "  -r, --record <название>  Записать команды в файл"
         echo "  --cmd <команда>         Выполнить команду в директории проекта"
+        echo "  pkg                    Работа с пакетами (install/remove/list)"
         exit 0
         ;;
     --init)
@@ -107,6 +108,9 @@ EOFWRAPPER
         cd "$SCRIPT_DIR"
         shift
         eval "$@"
+        ;;
+    pkg)
+        "$SCRIPT_DIR/smtools/pkg" "${@:2}"
         ;;
     *)
         echo "Использование: $0 --create|--record <имя>"

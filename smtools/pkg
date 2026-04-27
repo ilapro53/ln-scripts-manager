@@ -1,11 +1,11 @@
 #!/bin/bash
 
 usage() {
-    echo "Использование: $0 <менеджер> <команда> <пакеты>"
+    echo "Использование: pkg <менеджер> <команда> <пакеты>"
     echo "Команды: install, remove, list"
     echo "Менеджеры: pacman, yay, snap"
-    echo "Пример: $0 pacman install vim,git,nano"
-    echo "        $0 yay list"
+    echo "Пример: pkg pacman install vim,git,nano"
+    echo "        pkg yay list"
     exit 1
 }
 
