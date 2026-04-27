@@ -70,8 +70,16 @@ EOFWRAPPER
             echo "#!/bin/bash" > "$FILE"
             grep -v "^exit$" "$TMP_HIST" | grep -v "^$" | grep -v "^PS1=" >> "$FILE"
             rm "$TMP_HIST"
-            chmod +x "$FILE"
-            echo "Сохранено: $FILE"
+            
+            CONTENT=$(cat "$FILE")
+            if [ -z "$CONTENT" ] || [ "$CONTENT" = "#!/bin/bash" ]; then
+                rm -f "$FILE"
+                cleanup_empty_dirs "$FILE"
+                echo "Файл удалён (пустой)"
+            else
+                chmod +x "$FILE"
+                echo "Сохранено: $FILE"
+            fi
         else
             rm -f "$TMP_HIST"
             echo "Нет записанных команд."
