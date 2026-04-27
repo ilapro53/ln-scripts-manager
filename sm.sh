@@ -3,6 +3,20 @@
 SCRIPTS_DIR="./scripts"
 mkdir -p "$SCRIPTS_DIR"
 
+cleanup_empty_dirs() {
+    local FILE="$1"
+    local DIR="$(dirname "$FILE")"
+    
+    while [ "$DIR" != "." ] && [ "$DIR" != "/" ] && [ -n "$DIR" ]; do
+        if [ -d "$DIR" ] && [ -z "$(ls -A "$DIR")" ]; then
+            rmdir "$DIR"
+        else
+            break
+        fi
+        DIR="$(dirname "$DIR")"
+    done
+}
+
 case "$1" in
     -h|--help|"")
         echo "Использование: $0 [команда]"
@@ -22,6 +36,7 @@ case "$1" in
         CONTENT=$(cat "$FILE")
         if [ -z "$CONTENT" ] || [ "$CONTENT" = "#!/bin/bash" ]; then
             rm -f "$FILE"
+            cleanup_empty_dirs "$FILE"
             echo "Файл удалён (пустой)"
         else
             chmod +x "$FILE"
