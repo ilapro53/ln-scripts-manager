@@ -23,7 +23,7 @@ case "$1" in
         echo "Команды:"
         echo "  -h, --help              Показать справку"
         echo "  -c, -e, --create, --edit <название>  Создать/редактировать скрипт"
-        echo "  --record <название>    Записать команды в файл"
+        echo "  -r, --record <название>  Записать команды в файл"
         exit 0
         ;;
     -c|-e|--create|--edit)
@@ -43,7 +43,7 @@ case "$1" in
             echo "Сохранено: $FILE"
         fi
         ;;
-    --record)
+    -r|--record)
         if [ -z "$2" ]; then
             echo "Ошибка: Укажите название для записи"
             exit 1
