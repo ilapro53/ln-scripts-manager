@@ -1,6 +1,7 @@
 #!/bin/bash
 
-SCRIPTS_DIR="$(dirname "$0")/scripts"
+SCRIPT_DIR="$(cd "$(dirname "$(realpath "$0")")" && pwd)"
+SCRIPTS_DIR="$SCRIPT_DIR/scripts"
 
 cleanup_empty_dirs() {
     local FILE="$1"
@@ -30,9 +31,9 @@ case "$1" in
     --init)
         DEST="/usr/local/bin/sm"
         if [ -w "$(dirname "$DEST")" ]; then
-            cp "$0" "$DEST"
-            chmod +x "$DEST"
-            echo "Установлено: $DEST"
+            rm -f "$DEST"
+            ln -s "$(realpath "$0")" "$DEST"
+            echo "Установлено: $DEST -> $(realpath "$0")"
         else
             echo "Ошибка: нет прав на запись в /usr/local/bin"
             echo "Попробуйте: sudo $0 --init"
@@ -103,7 +104,6 @@ EOFWRAPPER
             echo "Ошибка: укажите команду"
             exit 1
         fi
-        SCRIPT_DIR="$(dirname "$0")"
         cd "$SCRIPT_DIR"
         shift
         eval "$@"
