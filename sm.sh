@@ -1,7 +1,6 @@
 #!/bin/bash
 
 SCRIPTS_DIR="$(dirname "$0")/scripts"
-mkdir -p "$SCRIPTS_DIR"
 
 cleanup_empty_dirs() {
     local FILE="$1"
@@ -25,6 +24,7 @@ case "$1" in
         echo "  --init                 Установить как глобальную команду"
         echo "  -c, -e, --create, --edit <название>  Создать/редактировать скрипт"
         echo "  -r, --record <название>  Записать команды в файл"
+        echo "  --cmd <команда>         Выполнить команду в директории проекта"
         exit 0
         ;;
     --init)
@@ -97,6 +97,16 @@ EOFWRAPPER
             rm -f "$TMP_HIST"
             echo "Нет записанных команд."
         fi
+        ;;
+    --cmd)
+        if [ -z "$2" ]; then
+            echo "Ошибка: укажите команду"
+            exit 1
+        fi
+        SCRIPT_DIR="$(dirname "$0")"
+        cd "$SCRIPT_DIR"
+        shift
+        eval "$@"
         ;;
     *)
         echo "Использование: $0 --create|--record <имя>"
