@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPTS_DIR="./scripts"
+SCRIPTS_DIR="$(dirname "$0")/scripts"
 mkdir -p "$SCRIPTS_DIR"
 
 cleanup_empty_dirs() {
