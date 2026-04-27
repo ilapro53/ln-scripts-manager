@@ -1,18 +1,38 @@
 #!/bin/bash
 
 usage() {
-    echo "Использование: pkg <менеджер> <команда> <пакеты>"
+    echo "Использование: pkg [флаги] <менеджер> <команда> <пакеты>"
     echo "Команды: install, remove, list, search"
     echo "Менеджеры: pacman, yay, snap"
+    echo "Флаги:"
+    echo "  -y, --yes-all, --noconfirm   Установить без подтверждений"
     echo "Пример: pkg pacman install vim,git,nano"
+    echo "        pkg -y pacman install vim,git,nano"
     echo "        pkg yay list"
-    echo "        pkg pacman search neofetch"
     exit 1
 }
+
+YES_FLAG=""
+
+while [[ "$1" == -* ]]; do
+    case "$1" in
+        -y|--yes-all|--noconfirm)
+            YES_FLAG="1"
+            shift
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
 
 MANAGER="$1"
 CMD="$2"
 PKGS="$3"
+
+if [ -z "$MANAGER" ] || [ -z "$CMD" ]; then
+    usage
+fi
 
 IFS=',' read -ra PACKAGES <<< "$PKGS"
 
@@ -20,10 +40,18 @@ case "$MANAGER" in
     pacman)
         case "$CMD" in
             install)
-                sudo pacman -S "${PACKAGES[@]}"
+                if [ -n "$YES_FLAG" ]; then
+                    sudo pacman -S --noconfirm "${PACKAGES[@]}"
+                else
+                    sudo pacman -S "${PACKAGES[@]}"
+                fi
                 ;;
             remove)
-                sudo pacman -Rns "${PACKAGES[@]}"
+                if [ -n "$YES_FLAG" ]; then
+                    sudo pacman -Rns --noconfirm "${PACKAGES[@]}"
+                else
+                    sudo pacman -Rns "${PACKAGES[@]}"
+                fi
                 ;;
             list)
                 pacman -Qq
@@ -39,10 +67,18 @@ case "$MANAGER" in
     yay)
         case "$CMD" in
             install)
-                yay -S "${PACKAGES[@]}"
+                if [ -n "$YES_FLAG" ]; then
+                    yay -S --noconfirm "${PACKAGES[@]}"
+                else
+                    yay -S "${PACKAGES[@]}"
+                fi
                 ;;
             remove)
-                yay -Rns "${PACKAGES[@]}"
+                if [ -n "$YES_FLAG" ]; then
+                    yay -Rns --noconfirm "${PACKAGES[@]}"
+                else
+                    yay -Rns "${PACKAGES[@]}"
+                fi
                 ;;
             list)
                 yay -Qq
@@ -58,7 +94,11 @@ case "$MANAGER" in
     snap)
         case "$CMD" in
             install)
-                sudo snap install "${PACKAGES[@]}"
+                if [ -n "$YES_FLAG" ]; then
+                    sudo snap install --yes "${PACKAGES[@]}"
+                else
+                    sudo snap install "${PACKAGES[@]}"
+                fi
                 ;;
             remove)
                 sudo snap remove "${PACKAGES[@]}"
