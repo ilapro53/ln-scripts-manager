@@ -22,8 +22,21 @@ case "$1" in
         echo "Использование: $0 [команда]"
         echo "Команды:"
         echo "  -h, --help              Показать справку"
+        echo "  --init                 Установить как глобальную команду"
         echo "  -c, -e, --create, --edit <название>  Создать/редактировать скрипт"
         echo "  -r, --record <название>  Записать команды в файл"
+        exit 0
+        ;;
+    --init)
+        DEST="/usr/local/bin/sm"
+        if [ -w "$(dirname "$DEST")" ]; then
+            cp "$0" "$DEST"
+            chmod +x "$DEST"
+            echo "Установлено: $DEST"
+        else
+            echo "Ошибка: нет прав на запись в /usr/local/bin"
+            echo "Попробуйте: sudo $0 --init"
+        fi
         exit 0
         ;;
     -c|-e|--create|--edit)
