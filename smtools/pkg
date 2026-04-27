@@ -2,10 +2,11 @@
 
 usage() {
     echo "Использование: pkg <менеджер> <команда> <пакеты>"
-    echo "Команды: install, remove, list"
+    echo "Команды: install, remove, list, search"
     echo "Менеджеры: pacman, yay, snap"
     echo "Пример: pkg pacman install vim,git,nano"
     echo "        pkg yay list"
+    echo "        pkg pacman search neofetch"
     exit 1
 }
 
@@ -27,6 +28,9 @@ case "$MANAGER" in
             list)
                 pacman -Qq
                 ;;
+            search)
+                pacman -Ss "$PKGS"
+                ;;
             *)
                 usage
                 ;;
@@ -43,6 +47,9 @@ case "$MANAGER" in
             list)
                 yay -Qq
                 ;;
+            search)
+                yay -Ss "$PKGS"
+                ;;
             *)
                 usage
                 ;;
@@ -58,6 +65,9 @@ case "$MANAGER" in
                 ;;
             list)
                 snap list | tail -n +2 | awk '{print $1}'
+                ;;
+            search)
+                snap find "$PKGS"
                 ;;
             *)
                 usage
