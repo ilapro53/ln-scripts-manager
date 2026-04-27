@@ -18,7 +18,15 @@ case "$1" in
         mkdir -p "$(dirname "$FILE")"
         [ ! -f "$FILE" ] && echo "#!/bin/bash" > "$FILE"
         nano "$FILE"
-        chmod +x "$FILE"
+        
+        CONTENT=$(cat "$FILE")
+        if [ -z "$CONTENT" ] || [ "$CONTENT" = "#!/bin/bash" ]; then
+            rm -f "$FILE"
+            echo "Файл удалён (пустой)"
+        else
+            chmod +x "$FILE"
+            echo "Сохранено: $FILE"
+        fi
         ;;
     --record)
         if [ -z "$2" ]; then
