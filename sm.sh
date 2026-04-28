@@ -27,6 +27,9 @@ case "$1" in
         echo "  -r, --record <название>  Записать команды в файл"
         echo "  --cmd <команда>         Выполнить команду в директории проекта"
         echo "  pkg                    Работа с пакетами (install/remove/list)"
+        echo "  ls                     Список скриптов"
+        echo "  x <название>           Выполнить скрипт в папке утилиты"
+        echo "  call <название>       Выполнить скрипт в текущей папке"
         exit 0
         ;;
     --init)
@@ -111,6 +114,40 @@ EOFWRAPPER
         ;;
     pkg)
         "$SCRIPT_DIR/smtools/pkg" "${@:2}"
+        ;;
+    ls)
+        if [ -n "$2" ]; then
+            find "$SCRIPTS_DIR/$2" -name "*.sh" -type f 2>/dev/null | sed "s|$SCRIPTS_DIR/$2/||" | sed 's|\.sh$||' | sort
+        else
+            find "$SCRIPTS_DIR" -name "*.sh" -type f | sed "s|$SCRIPTS_DIR/||" | sed 's|\.sh$||' | sort
+        fi
+        ;;
+    x)
+        if [ -z "$2" ]; then echo "Укажите имя"; exit 1; fi
+        FILE="$SCRIPTS_DIR/$2.sh"
+        if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
+        cd "$SCRIPT_DIR"
+        bash "$FILE"
+        ;;
+    x)
+        if [ -z "$2" ]; then echo "Укажите имя"; exit 1; fi
+        FILE="$SCRIPTS_DIR/$2.sh"
+        if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
+        cd "$SCRIPT_DIR"
+        bash "$FILE"
+        ;;
+    x)
+        if [ -z "$2" ]; then echo "Укажите имя"; exit 1; fi
+        FILE="$SCRIPTS_DIR/$2.sh"
+        if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
+        cd "$SCRIPT_DIR"
+        bash "$FILE"
+        ;;
+    call)
+        if [ -z "$2" ]; then echo "Укажите имя"; exit 1; fi
+        FILE="$SCRIPTS_DIR/$2.sh"
+        if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
+        bash "$FILE"
         ;;
     *)
         echo "Использование: $0 --create|--record <имя>"
