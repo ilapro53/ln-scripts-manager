@@ -1,4 +1,4 @@
-# sm — Script Manager
+# sm — (Linux) Script Manager
 
 Утилита для управления bash-скриптами.
 
@@ -7,7 +7,7 @@
 1. Клонировать репозиторий и перейти в папку проекта:
 ```bash
 git clone <repo-url>
-cd scripts-manager
+cd ln-scripts-manager
 ```
 
 2. Сделать исполняемым:
