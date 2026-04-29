@@ -67,7 +67,7 @@ bcp_edit() {
         nano "$DIRS_FILE"
     else
         echo "Введите директории:"
-        CONTENT=$(cat)
+        CONTENT=$(cat | sed 's|^\./||')
         echo "$CONTENT" > "$DIRS_FILE"
     fi
     echo "Сохранено: $NAME"
@@ -89,16 +89,24 @@ bcp_backup() {
     > "$TMP_JSON"
     
     while IFS= read -r line || [ -n "$line" ]; do
+        line="${line#./}"
         [ -z "$line" ] && continue
-        [ ! -d "$line" ] && continue
         
-        for file in "$line"/*; do
-            [ -f "$file" ] || continue
-            HASH=$(sha256sum "$file" | cut -d' ' -f1)
-            BASENAME=$(basename "$file")
-            cp "$file" "$DIR/$HASH.bcpf"
-            echo "    \"$line/$BASENAME\": \"$HASH.bcpf\"," >> "$TMP_JSON"
-        done
+        # Обрабатываем и файлы, и папки
+        if [ -d "$line" ]; then
+            for file in "$line"/*; do
+                [ -f "$file" ] || continue
+                HASH=$(sha256sum "$file" | cut -d' ' -f1)
+                BASENAME=$(basename "$file")
+                cp "$file" "$DIR/$HASH.bcpf"
+                echo "    \"$line/$BASENAME\": \"$HASH.bcpf\"," >> "$TMP_JSON"
+            done
+        elif [ -f "$line" ]; then
+            HASH=$(sha256sum "$line" | cut -d' ' -f1)
+            BASENAME=$(basename "$line")
+            cp "$line" "$DIR/$HASH.bcpf"
+            echo "    \"$BASENAME\": \"$HASH.bcpf\"," >> "$TMP_JSON"
+        fi
     done < "$DIRS_FILE"
     
     NOW=$(date -Iseconds)
@@ -128,6 +136,7 @@ bcp_restore() {
         echo "$line" | grep -q '":.*\.bcpf"' || continue
         
         ORIG_PATH=$(echo "$line" | sed 's/.*"\([^"]*\)":.*/\1/' | tr -d ' ')
+        ORIG_PATH="${ORIG_PATH#./}"
         HASH=$(echo "$line" | sed 's/.*": *"\([^"]*\)".*/\1/')
         
         [ -z "$ORIG_PATH" ] && continue
