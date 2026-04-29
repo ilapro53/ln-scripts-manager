@@ -27,6 +27,7 @@ case "$1" in
         echo "  -r, --record <название>  Записать команды в файл"
         echo "  --cmd <команда>         Выполнить команду в директории проекта"
         echo "  pkg                    Работа с пакетами (install/remove/list)"
+        echo "  bcp                    Работа с бэкапами (create/backup/restore)"
         echo "  ls                     Список скриптов"
         echo "  x <название>           Выполнить скрипт в папке утилиты"
         echo "  call <название>       Выполнить скрипт в текущей папке"
@@ -115,6 +116,9 @@ EOFWRAPPER
     pkg)
         "$SCRIPT_DIR/smtools/pkg" "${@:2}"
         ;;
+    bcp)
+        "$SCRIPT_DIR/smtools/bcp" "${@:2}" --dir "$SCRIPT_DIR"
+        ;;
     ls)
         if [ -n "$2" ]; then
             find "$SCRIPTS_DIR/$2" -name "*.sh" -type f 2>/dev/null | sed "s|$SCRIPTS_DIR/$2/||" | sed 's|\.sh$||' | sort
@@ -127,14 +131,7 @@ EOFWRAPPER
         FILE="$SCRIPTS_DIR/$2.sh"
         if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
         cd "$SCRIPT_DIR"
-        bash "$FILE"
-        ;;
-    x)
-        if [ -z "$2" ]; then echo "Укажите имя"; exit 1; fi
-        FILE="$SCRIPTS_DIR/$2.sh"
-        if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
-        cd "$SCRIPT_DIR"
-        bash "$FILE"
+bash "$FILE"
         ;;
     x)
         if [ -z "$2" ]; then echo "Укажите имя"; exit 1; fi
