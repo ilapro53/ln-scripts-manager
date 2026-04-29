@@ -27,9 +27,11 @@ case "$1" in
         echo "  -r, --record <название>  Записать команды в файл"
         echo "  --cmd <команда>         Выполнить команду в директории проекта"
         echo "  pkg                    Работа с пакетами (install/remove/list)"
+        echo "  bcp                    Работа с бэкапами (create/backup/restore)"
         echo "  ls                     Список скриптов"
         echo "  x <название>           Выполнить скрипт в папке утилиты"
         echo "  call <название>       Выполнить скрипт в текущей папке"
+        echo "  setgitignore <файл>       Установить <файл>.gitignore как .gitignore"
         exit 0
         ;;
     --init)
@@ -113,7 +115,10 @@ EOFWRAPPER
         eval "$@"
         ;;
     pkg)
-        "$SCRIPT_DIR/smtools/pkg" "${@:2}"
+        "$SCRIPT_DIR/smtools/pkg.sh" "${@:2}"
+        ;;
+    bcp)
+        "$SCRIPT_DIR/smtools/bcp.sh" "${@:2}" --dir "$SCRIPT_DIR"
         ;;
     ls)
         if [ -n "$2" ]; then
@@ -127,14 +132,7 @@ EOFWRAPPER
         FILE="$SCRIPTS_DIR/$2.sh"
         if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
         cd "$SCRIPT_DIR"
-        bash "$FILE"
-        ;;
-    x)
-        if [ -z "$2" ]; then echo "Укажите имя"; exit 1; fi
-        FILE="$SCRIPTS_DIR/$2.sh"
-        if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
-        cd "$SCRIPT_DIR"
-        bash "$FILE"
+bash "$FILE"
         ;;
     x)
         if [ -z "$2" ]; then echo "Укажите имя"; exit 1; fi
@@ -148,6 +146,26 @@ EOFWRAPPER
         FILE="$SCRIPTS_DIR/$2.sh"
         if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
         bash "$FILE"
+        ;;
+    setgitignore)
+        if [ -z "$2" ]; then
+            echo "Укажите имя"
+            exit 1
+        fi
+        
+        FILE=""
+        if [ -f "$SCRIPTS_DIR/$2.gitignore" ]; then
+            FILE="$SCRIPTS_DIR/$2.gitignore"
+        elif [ -f "$SCRIPT_DIR/$2.gitignore" ]; then
+            FILE="$SCRIPT_DIR/$2.gitignore"
+        else
+            echo "Файл не найден: $2.gitignore"
+            exit 1
+        fi
+        
+        rm -f .gitignore
+        cp "$FILE" .gitignore
+        echo "Установлен .gitignore: $2"
         ;;
     *)
         echo "Использование: $0 --create|--record <имя>"
