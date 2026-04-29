@@ -1,0 +1,120 @@
+#!/bin/bash
+
+usage() {
+    echo "Использование: pkg [флаги] <менеджер> <команда> <пакеты>"
+    echo "Команды: install, remove, list, search"
+    echo "Менеджеры: pacman, yay, snap"
+    echo "Флаги:"
+    echo "  -y, --yes-all, --noconfirm   Установить без подтверждений"
+    echo "Пример: pkg pacman install vim,git,nano"
+    echo "        pkg -y pacman install vim,git,nano"
+    echo "        pkg yay list"
+    exit 1
+}
+
+YES_FLAG=""
+
+while [[ "$1" == -* ]]; do
+    case "$1" in
+        -y|--yes-all|--noconfirm)
+            YES_FLAG="1"
+            shift
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+MANAGER="$1"
+CMD="$2"
+PKGS="$3"
+
+if [ -z "$MANAGER" ] || [ -z "$CMD" ]; then
+    usage
+fi
+
+IFS=',' read -ra PACKAGES <<< "$PKGS"
+
+case "$MANAGER" in
+    pacman)
+        case "$CMD" in
+            install)
+                if [ -n "$YES_FLAG" ]; then
+                    sudo pacman -S --noconfirm "${PACKAGES[@]}"
+                else
+                    sudo pacman -S "${PACKAGES[@]}"
+                fi
+                ;;
+            remove)
+                if [ -n "$YES_FLAG" ]; then
+                    sudo pacman -Rns --noconfirm "${PACKAGES[@]}"
+                else
+                    sudo pacman -Rns "${PACKAGES[@]}"
+                fi
+                ;;
+            list)
+                pacman -Qq
+                ;;
+            search)
+                pacman -Ss "$PKGS"
+                ;;
+            *)
+                usage
+                ;;
+        esac
+        ;;
+    yay)
+        case "$CMD" in
+            install)
+                if [ -n "$YES_FLAG" ]; then
+                    yay -S --noconfirm "${PACKAGES[@]}"
+                else
+                    yay -S "${PACKAGES[@]}"
+                fi
+                ;;
+            remove)
+                if [ -n "$YES_FLAG" ]; then
+                    yay -Rns --noconfirm "${PACKAGES[@]}"
+                else
+                    yay -Rns "${PACKAGES[@]}"
+                fi
+                ;;
+            list)
+                yay -Qq
+                ;;
+            search)
+                yay -Ss "$PKGS"
+                ;;
+            *)
+                usage
+                ;;
+        esac
+        ;;
+    snap)
+        case "$CMD" in
+            install)
+                if [ -n "$YES_FLAG" ]; then
+                    sudo snap install --yes "${PACKAGES[@]}"
+                else
+                    sudo snap install "${PACKAGES[@]}"
+                fi
+                ;;
+            remove)
+                sudo snap remove "${PACKAGES[@]}"
+                ;;
+            list)
+                snap list | tail -n +2 | awk '{print $1}'
+                ;;
+            search)
+                snap find "$PKGS"
+                ;;
+            *)
+                usage
+                ;;
+        esac
+        ;;
+    *)
+        usage
+        ;;
+esac
