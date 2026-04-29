@@ -6,16 +6,19 @@
 
 ### Обязательные
 
-- **bash** — оболочка
-- **coreutils** — sha256sum, mkdir, rm, cp, mv, date, basename, dirname, cat, touch, sed, grep, tr, cut, head, tail, find
-- **sudo** — для команд с правами суперпользователя
+- bash - оболочка
+- coreutils - sha256sum, mkdir, rm, cp, mv, date, basename, dirname, cat, touch, tr, cut, head, tail
+- sed - потоковый редактор
+- grep - поиск по тексту
+- findutils - find, locate, xargs
+- sudo - для команд с правами суперпользователя
 
 ### Опциональные
 
-- **nano** — для редактирования списка директорий в bcp (без него работает через stdin)
-- **pacman** — если нужен
-- **yay** — если нужен
-- **snap** — если нужен
+- nano - для редактирования списка директорий в bcp (без него работает через stdin)
+- pacman - если нужен
+- yay - если нужен
+- snap - если нужен
 
 ## Установка
 
