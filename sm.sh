@@ -31,6 +31,7 @@ case "$1" in
         echo "  ls                     Список скриптов"
         echo "  x <название>           Выполнить скрипт в папке утилиты"
         echo "  call <название>       Выполнить скрипт в текущей папке"
+        echo "  setgitignore <файл>       Установить <файл>.gitignore как .gitignore"
         exit 0
         ;;
     --init)
@@ -145,6 +146,26 @@ bash "$FILE"
         FILE="$SCRIPTS_DIR/$2.sh"
         if [ ! -f "$FILE" ]; then echo "Скрипт не найден: $FILE"; exit 1; fi
         bash "$FILE"
+        ;;
+    setgitignore)
+        if [ -z "$2" ]; then
+            echo "Укажите имя"
+            exit 1
+        fi
+        
+        FILE=""
+        if [ -f "$SCRIPTS_DIR/$2.gitignore" ]; then
+            FILE="$SCRIPTS_DIR/$2.gitignore"
+        elif [ -f "$SCRIPT_DIR/$2.gitignore" ]; then
+            FILE="$SCRIPT_DIR/$2.gitignore"
+        else
+            echo "Файл не найден: $2.gitignore"
+            exit 1
+        fi
+        
+        rm -f .gitignore
+        cp "$FILE" .gitignore
+        echo "Установлен .gitignore: $2"
         ;;
     *)
         echo "Использование: $0 --create|--record <имя>"
