@@ -14,7 +14,7 @@ sudo ./sm.sh --init
 ./sm.sh setgitignore user
 ```
 
-Контрибьюторы должны использовать:
+⚠️ Контрибьюторы должны использовать:
 ```bash
 ./sm.sh setgitignore dev
 ```
