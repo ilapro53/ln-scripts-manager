@@ -115,7 +115,7 @@ sm setgitignore dev
 sm.sh           # основной скрипт
 smtools/        # утилиты
   bcp.sh       # менеджер бэкапов
-  pkg          # менеджер пакетов
+  pkg.sh      # менеджер пакетов
 scripts/       # ваши скрипты
 backups/        # бэкапы
 dev.gitignore  # шаблон gitignore для разработки

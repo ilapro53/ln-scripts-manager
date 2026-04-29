@@ -115,7 +115,7 @@ EOFWRAPPER
         eval "$@"
         ;;
     pkg)
-        "$SCRIPT_DIR/smtools/pkg" "${@:2}"
+        "$SCRIPT_DIR/smtools/pkg.sh" "${@:2}"
         ;;
     bcp)
         "$SCRIPT_DIR/smtools/bcp.sh" "${@:2}" --dir "$SCRIPT_DIR"
