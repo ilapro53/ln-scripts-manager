@@ -117,7 +117,7 @@ EOFWRAPPER
         "$SCRIPT_DIR/smtools/pkg" "${@:2}"
         ;;
     bcp)
-        "$SCRIPT_DIR/smtools/bcp" "${@:2}" --dir "$SCRIPT_DIR"
+        "$SCRIPT_DIR/smtools/bcp.sh" "${@:2}" --dir "$SCRIPT_DIR"
         ;;
     ls)
         if [ -n "$2" ]; then
