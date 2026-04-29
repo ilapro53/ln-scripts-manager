@@ -7,11 +7,11 @@
 ### Обязательные
 
 - `bash` - оболочка
+- `sudo` - для команд с правами суперпользователя
 - `coreutils` - `sha256sum`, `mkdir`, `rm`, `cp`, `mv`, `date`, `basename`, `dirname`, `cat`, `touch`, `tr`, `cut`, `head`, `tail`
+- `findutils` - `find`, `locate`, `xargs`
 - `sed` - потоковый редактор
 - `grep` - поиск по тексту
-- `findutils` - `find`, `locate`, `xargs`
-- `sudo` - для команд с правами суперпользователя
 
 ### Опциональные
 
