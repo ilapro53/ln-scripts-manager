@@ -144,7 +144,7 @@ bcp_restore() {
         DST_DIR=$(dirname "$ORIG_PATH")
         [ -n "$DST_DIR" ] && [ "$DST_DIR" != "." ] && mkdir -p "$DST_DIR"
         
-        [ -f "$DIR/$HASH" ] && mv "$DIR/$HASH" "$ORIG_PATH" && echo "Restored: $ORIG_PATH"
+        [ -f "$DIR/$HASH" ] && cp "$DIR/$HASH" "$ORIG_PATH" && echo "Restored: $ORIG_PATH"
     done < "$META_FILE"
     
     echo "Готово: $NAME"
