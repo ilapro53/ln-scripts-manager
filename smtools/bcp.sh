@@ -118,10 +118,13 @@ bcp_edit() {
     
     if [ -n "$MODE" ]; then
         if [ "$MODE" = "recursive" ]; then
-            [ -f "$DIRS_FILE" ] && rm "$DIRS_FILE" && touch "$DIRS_FILE_REC"
+            [ -f "$DIRS_FILE" ] && mv "$DIRS_FILE" "$DIRS_FILE_REC"
         else
-            [ -f "$DIRS_FILE_REC" ] && rm "$DIRS_FILE_REC" && touch "$DIRS_FILE"
+            [ -f "$DIRS_FILE_REC" ] && mv "$DIRS_FILE_REC" "$DIRS_FILE"
         fi
+        mode=$(get_mode "$NAME")
+        echo "Сохранено: $NAME ($mode)"
+        return 0
     fi
     
     local ACTIVE_FILE=""
