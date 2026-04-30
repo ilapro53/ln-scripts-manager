@@ -177,19 +177,32 @@ bcp_backup() {
         DIRS_TO_PROCESS="$DIRS_FILE"
     fi
     
+    MODE=$(get_mode "$NAME")
+    
     while IFS= read -r line || [ -n "$line" ]; do
         line="${line#./}"
         [ -z "$line" ] && continue
         
         if [ -d "$line" ]; then
-            find "$line" -type f | while read -r file; do
-                [ -f "$file" ] || continue
-                HASH=$(sha256sum "$file" | cut -d' ' -f1)
-                REL_PATH="${file#./}"
-                UNIQ="$HASH.$(echo "$REL_PATH" | tr '/' '_').bcpf"
-                cp "$file" "$DIR/$UNIQ"
-                echo "    \"$REL_PATH\": \"$UNIQ\"," >> "$TMP_JSON"
-            done
+            if [ "$MODE" = "recursive" ]; then
+                find "$line" -type f | while read -r file; do
+                    [ -f "$file" ] || continue
+                    HASH=$(sha256sum "$file" | cut -d' ' -f1)
+                    REL_PATH="${file#./}"
+                    UNIQ="$HASH.$(echo "$REL_PATH" | tr '/' '_').bcpf"
+                    cp "$file" "$DIR/$UNIQ"
+                    echo "    \"$REL_PATH\": \"$UNIQ\"," >> "$TMP_JSON"
+                done
+            else
+                for file in "$line"/*; do
+                    [ -f "$file" ] || continue
+                    HASH=$(sha256sum "$file" | cut -d' ' -f1)
+                    REL_PATH="${file#./}"
+                    UNIQ="$HASH.$(echo "$REL_PATH" | tr '/' '_').bcpf"
+                    cp "$file" "$DIR/$UNIQ"
+                    echo "    \"$REL_PATH\": \"$UNIQ\"," >> "$TMP_JSON"
+                done
+            fi
         elif [ -f "$line" ]; then
             HASH=$(sha256sum "$line" | cut -d' ' -f1)
             REL_PATH="${line#./}"
