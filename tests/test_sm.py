@@ -2,7 +2,6 @@
 
 import os
 import subprocess
-import tempfile
 import shutil
 import pytest
 from pathlib import Path
@@ -11,26 +10,17 @@ SCRIPT_DIR = Path(__file__).parent.parent.resolve()
 SM = SCRIPT_DIR / "sm.sh"
 BCP = SCRIPT_DIR / "smtools" / "bcp.sh"
 PKG = SCRIPT_DIR / "smtools" / "pkg.sh"
-WORK_DIR = None
 
 
-@pytest.fixture(autouse=True)
-def setup_teardown():
-    global WORK_DIR
-    WORK_DIR = tempfile.mkdtemp()
-    os.chdir(WORK_DIR)
-    yield
-    os.chdir("/")
-    shutil.rmtree(WORK_DIR, ignore_errors=True)
-
-
-def run(cmd, check=True, input_data=None):
+def run(cmd, check=True, input_data=None, cwd=None):
+    if cwd is None:
+        cwd = SCRIPT_DIR
     result = subprocess.run(
         cmd if isinstance(cmd, list) else cmd.split(),
         capture_output=True,
         text=True,
         input=input_data,
-        cwd=WORK_DIR,
+        cwd=cwd,
         env={**os.environ, "HOME": os.environ.get("HOME", "/home/test")}
     )
     if check and result.returncode != 0:
