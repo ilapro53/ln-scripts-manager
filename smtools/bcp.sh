@@ -50,7 +50,7 @@ bcp_create() {
     local DIRS_FILE="$(get_dirs_file "$NAME")"
     
     [ -z "$NAME" ] && echo "Укажите имя" && exit 1
-    [ -d "$DIR" ] || [ -f "$DIRS_FILE" ] && echo "Уже существует: $NAME" && exit 1
+    { [ -d "$DIR" ] || [ -f "$DIRS_FILE" ]; } && echo "Уже существует: $NAME" && exit 1
     
     mkdir -p "$DIR" && touch "$DIRS_FILE"
     echo "Создано: $NAME"
@@ -174,4 +174,3 @@ case "$CMD" in
     delete) bcp_delete "$NAME" ;;
     list) bcp_list ;;
     *) usage ;;
-esac
