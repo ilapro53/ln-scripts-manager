@@ -38,8 +38,13 @@ for arg in "$@"; do
     PACKAGES+=("${parts[@]}")
 done
 
+check_manager() {
+    command -v "$1" >/dev/null 2>&1 || { echo "Ошибка: менеджер пакетов '$1' не найден"; exit 1; }
+}
+
 case "$MANAGER" in
     pacman)
+        check_manager pacman
         case "$CMD" in
             install)
                 [ -n "$YES_FLAG" ] && sudo pacman -S --noconfirm "${PACKAGES[@]}" || sudo pacman -S "${PACKAGES[@]}"
@@ -57,6 +62,7 @@ case "$MANAGER" in
         esac
         ;;
     yay)
+        check_manager yay
         case "$CMD" in
             install)
                 [ -n "$YES_FLAG" ] && yay -S --noconfirm "${PACKAGES[@]}" || yay -S "${PACKAGES[@]}"
@@ -74,12 +80,7 @@ case "$MANAGER" in
         esac
         ;;
     snap)
+        check_manager snap
         case "$CMD" in
             install)
-                for pkg in "${PACKAGES[@]}"; do
-                    [ -n "$YES_FLAG" ] && sudo snap install --yes "$pkg" || sudo snap install "$pkg"
-                done
-                ;;
-            remove)
-                for pkg in "${PACKAGES[@]}"; do
-         
+                for pkg in "${PACKA
