@@ -75,10 +75,10 @@ case "$MANAGER" in
     snap)
         case "$CMD" in
             install)
-                [ -n "$YES_FLAG" ] && sudo snap install --yes "${PACKAGES[@]}" || sudo snap install "${PACKAGES[@]}"
+                for pkg in "${PACKAGES[@]}"; do
+                    [ -n "$YES_FLAG" ] && sudo snap install --yes "$pkg" || sudo snap install "$pkg"
+                done
                 ;;
             remove)
-                sudo snap remove "${PACKAGES[@]}"
-                ;;
-            list)
-                snap list | tail -n +2 | awk
+                for pkg in "${PACKAGES[@]}"; do
+                    sudo snap 
