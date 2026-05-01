@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 usage() {
     echo "Использование: pkg [флаги] <менеджер> <команда> <пакеты>"
@@ -82,5 +83,4 @@ case "$MANAGER" in
         check_manager snap
         case "$CMD" in
             install)
-                for pkg in "${PACKAGES[@]}"; do
-      
+                for pkg in "${PACKAG

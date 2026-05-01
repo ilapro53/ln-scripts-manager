@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 WORKDIR="."
 
@@ -170,5 +171,4 @@ CMD="${ARGS[0]:-}"
 NAME="${ARGS[1]:-}"
 
 case "$CMD" in
-    create) bcp_create "$NAME" ;;
-    edit) bcp
+    create) bcp_create "$NAME
