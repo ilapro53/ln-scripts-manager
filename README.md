@@ -73,18 +73,20 @@ sm --cmd <command>                 # выполнить команду в пап
 ### Бэкапы
 
 ```bash
-sm bcp create <name>     # создать пустой бэкап
-sm bcp edit <name>        # редактировать список директорий
-sm bcp backup <name>     # создать бэкап
-sm bcp restore <name>    # восстановить из бэкапа
-sm bcp delete <name>     # удалить бэкап
-sm bcp list             # список бэкапов
+sm bcp create -s|-r <name>    # создать пустой бэкап (-s: shallow, -r: recursive)
+sm bcp edit [-s|-r] <name>     # редактировать список директорий
+sm bcp backup <name>          # создать бэкап
+sm bcp restore <name>        # восстановить из бэкапа
+sm bcp delete <name>          # удалить бэкап
+sm bcp list                  # список бэкапов
 ```
 
 Бэкапы хранятся в папке `backups/`:
-- `<name>.bcpdirs.txt` — список директорий для бэкапа
+- `<name>/` — файлы с уникальными именами
 - `<name>.bcp.json` — метаданные (время, хэши файлов)
-- `<name>/` — файлы с хэшированными именами
+- `<name>.backup.mode.txt` — режим бэкапа (shallow/recursive)
+- `<name>.bcpdirs.txt` — shallow: список директорий для бэкапа
+- `<name>.bcpdirs.rec.txt` — recursive: список директорий для бэкапа
 
 ### Пакеты
 
