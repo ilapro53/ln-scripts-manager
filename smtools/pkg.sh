@@ -23,13 +23,19 @@ while [[ "$1" == -* ]]; do
     esac
 done
 
-MANAGER="$1"
-CMD="$2"
-PKGS="$3"
+MANAGER="${1:-}"
+CMD="${2:-}"
 
 [ -z "$MANAGER" ] || [ -z "$CMD" ] && usage
 
-IFS=',' read -ra PACKAGES <<< "$PKGS"
+shift 2
+
+# Поддержка и пробела, и запятой как разделителя пакетов
+PACKAGES=()
+for arg in "$@"; do
+    IFS=',' read -ra parts <<< "$arg"
+    PACKAGES+=("${parts[@]}")
+done
 
 case "$MANAGER" in
     pacman)
@@ -75,13 +81,4 @@ case "$MANAGER" in
                 sudo snap remove "${PACKAGES[@]}"
                 ;;
             list)
-                snap list | tail -n +2 | awk '{print $1}'
-                ;;
-            search)
-                snap find "$PKGS"
-                ;;
-            *) usage ;;
-        esac
-        ;;
-    *) usage ;;
-esac
+                snap list | tail -n +2 | awk
