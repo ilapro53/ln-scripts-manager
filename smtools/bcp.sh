@@ -48,8 +48,25 @@ BACKUPS_DIR="$WORKDIR/backups"
 
 get_backup_dir() { echo "$BACKUPS_DIR/$1"; }
 get_dirs_file() { echo "$BACKUPS_DIR/$1.bcpdirs.txt"; }
+get_dirs_file_rec() { echo "$BACKUPS_DIR/$1.bcpdirs.rec.txt"; }
 get_mode_file() { echo "$BACKUPS_DIR/$1.backup.mode.txt"; }
 get_meta_file() { echo "$BACKUPS_DIR/$1.bcp.json"; }
+
+has_both_dirs() {
+    [ -f "$(get_dirs_file "$1")" ] && [ -f "$(get_dirs_file_rec "$1")" ]
+}
+
+get_template_mode() {
+    if [ -f "$(get_dirs_file_rec "$1")" ]; then
+        echo "recursive"
+    else
+        echo "shallow"
+    fi
+}
+
+set_mode() {
+    echo "$2" > "$(get_mode_file "$1")"
+}
 
 get_mode() {
     local MODE_FILE="$(get_mode_file "$1")"
@@ -58,11 +75,6 @@ get_mode() {
     else
         echo "shallow"
     fi
-}
-
-set_mode() {
-    local MODE_FILE="$(get_mode_file "$1")"
-    echo "$2" > "$MODE_FILE"
 }
 
 bcp_list() {
@@ -79,14 +91,19 @@ bcp_create() {
     local NAME="$1"
     local DIR="$(get_backup_dir "$NAME")"
     local DIRS_FILE="$(get_dirs_file "$NAME")"
+    local DIRS_FILE_REC="$(get_dirs_file_rec "$NAME")"
     local MODE_FILE="$(get_mode_file "$NAME")"
     
     [ -z "$NAME" ] && echo "Укажите имя" && exit 1
     [ -z "$MODE" ] && echo "Укажите режим: -s (shallow) или -r (recursive)" && exit 1
-    [ -d "$DIR" ] || [ -f "$DIRS_FILE" ] || [ -f "$MODE_FILE" ] && echo "Уже существует: $NAME" && exit 1
+    [ -d "$DIR" ] || [ -f "$DIRS_FILE" ] || [ -f "$DIRS_FILE_REC" ] || [ -f "$MODE_FILE" ] && echo "Уже существует: $NAME" && exit 1
     
     mkdir -p "$DIR"
-    touch "$DIRS_FILE"
+    if [ "$MODE" = "recursive" ]; then
+        touch "$DIRS_FILE_REC"
+    else
+        touch "$DIRS_FILE"
+    fi
     set_mode "$NAME" "$MODE"
     echo "Создано: $NAME ($MODE)"
 }
@@ -94,43 +111,76 @@ bcp_create() {
 bcp_edit() {
     local NAME="$1"
     local DIRS_FILE="$(get_dirs_file "$NAME")"
-    local MODE_FILE="$(get_mode_file "$NAME")"
+    local DIRS_FILE_REC="$(get_dirs_file_rec "$NAME")"
     
     [ -z "$NAME" ] && echo "Укажите имя" && exit 1
-    [ ! -f "$DIRS_FILE" ] && echo "Не существует: $NAME" && exit 1
+    
+    if has_both_dirs "$NAME"; then
+        echo "Ошибка: найдены оба файла директорий. Удалите один."
+        exit 1
+    fi
     
     if [ -n "$MODE" ]; then
-        set_mode "$NAME" "$MODE"
+        if [ "$MODE" = "recursive" ]; then
+            [ -f "$DIRS_FILE" ] && mv "$DIRS_FILE" "$DIRS_FILE_REC"
+        else
+            [ -f "$DIRS_FILE_REC" ] && mv "$DIRS_FILE_REC" "$DIRS_FILE"
+        fi
+    fi
+    
+    local ACTIVE_FILE=""
+    if [ -f "$DIRS_FILE_REC" ]; then
+        ACTIVE_FILE="$DIRS_FILE_REC"
+    elif [ -f "$DIRS_FILE" ]; then
+        ACTIVE_FILE="$DIRS_FILE"
+    else
+        echo "Не существует: $NAME"
+        exit 1
     fi
     
     if [ -t 0 ] && command -v nano >/dev/null 2>&1; then
-        nano "$DIRS_FILE"
+        nano "$ACTIVE_FILE"
     else
         echo "Введите директории:"
         CONTENT=$(cat | sed 's|^\./||')
-        echo "$CONTENT" > "$DIRS_FILE"
+        echo "$CONTENT" > "$ACTIVE_FILE"
     fi
     
     mode=$(get_mode "$NAME")
-    echo "Сохранено: $NAME ($mode)"
+    echo "Сохранено: $NAME (бэкап: $mode, образ: $(get_template_mode "$NAME"))"
 }
 
 bcp_backup() {
     local NAME="$1"
     local DIR="$(get_backup_dir "$NAME")"
     local DIRS_FILE="$(get_dirs_file "$NAME")"
+    local DIRS_FILE_REC="$(get_dirs_file_rec "$NAME")"
     local META_FILE="$(get_meta_file "$NAME")"
     local TMP_JSON=$(mktemp)
     
     [ -z "$NAME" ] && echo "Укажите имя" && exit 1
-    [ ! -f "$DIRS_FILE" ] && echo "Не существует: $NAME" && exit 1
+    
+    if has_both_dirs "$NAME"; then
+        echo "Ошибка: найдены оба файла директорий. Удалите один."
+        exit 1
+    fi
+    
+    [ ! -f "$DIRS_FILE" ] && [ ! -f "$DIRS_FILE_REC" ] && echo "Не существует: $NAME" && exit 1
+    
+    TEMPLATE_MODE=$(get_template_mode "$NAME")
+    set_mode "$NAME" "$TEMPLATE_MODE"
+    MODE="$TEMPLATE_MODE"
+    
+    if [ -f "$DIRS_FILE_REC" ]; then
+        DIRS_TO_PROCESS="$DIRS_FILE_REC"
+    else
+        DIRS_TO_PROCESS="$DIRS_FILE"
+    fi
     
     rm -rf "$DIR" "$META_FILE"
     mkdir -p "$DIR"
     
     > "$TMP_JSON"
-    
-    MODE=$(get_mode "$NAME")
     
     while IFS= read -r line || [ -n "$line" ]; do
         line="${line#./}"
@@ -163,7 +213,7 @@ bcp_backup() {
             cp "$line" "$DIR/$UNIQ"
             echo "    \"$REL_PATH\": \"$UNIQ\"," >> "$TMP_JSON"
         fi
-    done < "$DIRS_FILE"
+    done < "$DIRS_TO_PROCESS"
     
     NOW=$(date -Iseconds)
     {
@@ -212,13 +262,14 @@ bcp_delete() {
     local NAME="$1"
     local DIR="$(get_backup_dir "$NAME")"
     local DIRS_FILE="$(get_dirs_file "$NAME")"
+    local DIRS_FILE_REC="$(get_dirs_file_rec "$NAME")"
     local MODE_FILE="$(get_mode_file "$NAME")"
     local META_FILE="$(get_meta_file "$NAME")"
     
     [ -z "$NAME" ] && echo "Укажите имя" && exit 1
-    [ ! -d "$DIR" ] && [ ! -f "$DIRS_FILE" ] && echo "Не существует: $NAME" && exit 1
+    [ ! -d "$DIR" ] && [ ! -f "$DIRS_FILE" ] && [ ! -f "$DIRS_FILE_REC" ] && echo "Не существует: $NAME" && exit 1
     
-    rm -rf "$DIR" "$DIRS_FILE" "$MODE_FILE" "$META_FILE"
+    rm -rf "$DIR" "$DIRS_FILE" "$DIRS_FILE_REC" "$MODE_FILE" "$META_FILE"
     echo "Удалено: $NAME"
 }
 
