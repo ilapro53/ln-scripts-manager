@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 usage() {
     echo "Использование: pkg [флаги] <менеджер> <команда> <пакеты>"
@@ -83,5 +84,4 @@ case "$MANAGER" in
             *) usage ;;
         esac
         ;;
-    *) usage ;;
-esac
+  
