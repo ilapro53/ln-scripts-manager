@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 WORKDIR="."
 
@@ -94,9 +95,11 @@ bcp_create() {
     local DIRS_FILE_REC="$(get_dirs_file_rec "$NAME")"
     local MODE_FILE="$(get_mode_file "$NAME")"
     
-    [ -z "$NAME" ] && echo "Укажите имя" && exit 1
-    [ -z "$MODE" ] && echo "Укажите режим: -s (shallow) или -r (recursive)" && exit 1
-    { [ -d "$DIR" ] || [ -f "$DIRS_FILE" ] || [ -f "$DIRS_FILE_REC" ] || [ -f "$MODE_FILE" ]; } && echo "Уже существует: $NAME" && exit 1
+    if [ -z "$NAME" ]; then echo "Укажите имя"; exit 1; fi
+    if [ -z "$MODE" ]; then echo "Укажите режим: -s (shallow) или -r (recursive)"; exit 1; fi
+    if [ -d "$DIR" ] || [ -f "$DIRS_FILE" ] || [ -f "$DIRS_FILE_REC" ] || [ -f "$MODE_FILE" ]; then
+        echo "Уже существует: $NAME"; exit 1
+    fi
     
     mkdir -p "$DIR"
     if [ "$MODE" = "recursive" ]; then
@@ -113,13 +116,13 @@ bcp_edit() {
     local DIRS_FILE="$(get_dirs_file "$NAME")"
     local DIRS_FILE_REC="$(get_dirs_file_rec "$NAME")"
     
-    [ -z "$NAME" ] && echo "Укажите имя" && exit 1
-    
+    if [ -z "$NAME" ]; then echo "Укажите имя"; exit 1; fi
+
     if has_both_dirs "$NAME"; then
         echo "Ошибка: найдены оба файла директорий. Удалите один."
         exit 1
     fi
-    
+
     if [ -n "$MODE" ]; then
         if [ "$MODE" = "recursive" ]; then
             [ -f "$DIRS_FILE" ] && mv "$DIRS_FILE" "$DIRS_FILE_REC"
@@ -158,14 +161,14 @@ bcp_backup() {
     local META_FILE="$(get_meta_file "$NAME")"
     local TMP_JSON=$(mktemp)
     
-    [ -z "$NAME" ] && echo "Укажите имя" && exit 1
-    
+    if [ -z "$NAME" ]; then echo "Укажите имя"; exit 1; fi
+
     if has_both_dirs "$NAME"; then
         echo "Ошибка: найдены оба файла директорий. Удалите один."
         exit 1
     fi
-    
-    [ ! -f "$DIRS_FILE" ] && [ ! -f "$DIRS_FILE_REC" ] && echo "Не существует: $NAME" && exit 1
+
+    if [ ! -f "$DIRS_FILE" ] && [ ! -f "$DIRS_FILE_REC" ]; then echo "Не существует: $NAME"; exit 1; fi
     
     TEMPLATE_MODE=$(get_template_mode "$NAME")
     set_mode "$NAME" "$TEMPLATE_MODE"
@@ -241,8 +244,8 @@ bcp_restore() {
     local DIR="$(get_backup_dir "$NAME")"
     local META_FILE="$(get_meta_file "$NAME")"
     
-    [ -z "$NAME" ] && echo "Укажите имя" && exit 1
-    [ ! -f "$META_FILE" ] && echo "Не найден: $NAME" && exit 1
+    if [ -z "$NAME" ]; then echo "Укажите имя"; exit 1; fi
+    if [ ! -f "$META_FILE" ]; then echo "Не найден: $NAME"; exit 1; fi
     
     MODE=$(get_mode "$NAME")
     
@@ -272,8 +275,7 @@ bcp_delete() {
     local MODE_FILE="$(get_mode_file "$NAME")"
     local META_FILE="$(get_meta_file "$NAME")"
     
-    [ -z "$NAME" ] && echo "Укажите имя" && exit 1
-    [ ! -d "$DIR" ] && [ ! -f "$DIRS_FILE" ] && [ ! -f "$DIRS_FILE_REC" ] && echo "Не существует: $NAME" && exit 1
+    if [ -z "$NAME" ]; then echo "Укажите имя"; exit 1; fi
+    if [ ! -d "$DIR" ] && [ ! -f "$DIRS_FILE" ] && [ ! -f "$DIRS_FILE_REC" ]; then echo "Не существует: $NAME"; exit 1; fi
     
-    rm -rf "$DIR" "$DIRS_FILE" "$DIRS_FILE_REC" "$MODE_FILE" "$META_FILE"
-    echo "Удален�
+    rm -rf "$DIR" "$DIRS_FILE" "$DIRS_FIL
