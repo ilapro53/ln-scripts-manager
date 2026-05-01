@@ -15,5 +15,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Run bcp tests
-        run: bash tests/bcp_test.sh
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: pip install pytest
+      
+      - name: Run tests
+        run: pytest tests/test_sm.py -v
