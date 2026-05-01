@@ -177,6 +177,12 @@ bcp_backup() {
         DIRS_TO_PROCESS="$DIRS_FILE"
     fi
     
+    if [ -d "$DIR" ] || [ -f "$META_FILE" ]; then
+        printf "Бэкап '%s' уже существует. Перезаписать? [y/N] " "$NAME"
+        read -r REPLY
+        [ "$REPLY" = "y" ] || [ "$REPLY" = "Y" ] || { echo "Отменено."; exit 0; }
+    fi
+
     rm -rf "$DIR" "$META_FILE"
     mkdir -p "$DIR"
     
@@ -270,17 +276,4 @@ bcp_delete() {
     [ ! -d "$DIR" ] && [ ! -f "$DIRS_FILE" ] && [ ! -f "$DIRS_FILE_REC" ] && echo "Не существует: $NAME" && exit 1
     
     rm -rf "$DIR" "$DIRS_FILE" "$DIRS_FILE_REC" "$MODE_FILE" "$META_FILE"
-    echo "Удалено: $NAME"
-}
-
-CMD="${ARGS[0]:-}"
-NAME="${ARGS[1]:-}"
-
-case "$CMD" in
-    create) bcp_create "$NAME" ;;
-    edit) bcp_edit "$NAME" ;;
-    backup) bcp_backup "$NAME" ;;
-    restore) bcp_restore "$NAME" ;;
-    delete) bcp_delete "$NAME" ;;
-    list) bcp_list ;;
-    *) usage ;;
+    echo "Удален�
