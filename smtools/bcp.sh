@@ -96,7 +96,7 @@ bcp_create() {
     
     [ -z "$NAME" ] && echo "Укажите имя" && exit 1
     [ -z "$MODE" ] && echo "Укажите режим: -s (shallow) или -r (recursive)" && exit 1
-    [ -d "$DIR" ] || [ -f "$DIRS_FILE" ] || [ -f "$DIRS_FILE_REC" ] || [ -f "$MODE_FILE" ] && echo "Уже существует: $NAME" && exit 1
+    { [ -d "$DIR" ] || [ -f "$DIRS_FILE" ] || [ -f "$DIRS_FILE_REC" ] || [ -f "$MODE_FILE" ]; } && echo "Уже существует: $NAME" && exit 1
     
     mkdir -p "$DIR"
     if [ "$MODE" = "recursive" ]; then
@@ -284,4 +284,3 @@ case "$CMD" in
     delete) bcp_delete "$NAME" ;;
     list) bcp_list ;;
     *) usage ;;
-esac
