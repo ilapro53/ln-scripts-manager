@@ -56,7 +56,7 @@ case "$MANAGER" in
                 pacman -Qq
                 ;;
             search)
-                pacman -Ss "$PKGS"
+                pacman -Ss "${PACKAGES[@]}"
                 ;;
             *) usage ;;
         esac
@@ -74,7 +74,7 @@ case "$MANAGER" in
                 yay -Qq
                 ;;
             search)
-                yay -Ss "$PKGS"
+                yay -Ss "${PACKAGES[@]}"
                 ;;
             *) usage ;;
         esac
@@ -83,4 +83,27 @@ case "$MANAGER" in
         check_manager snap
         case "$CMD" in
             install)
-                for pkg in "${PACKA
+                for pkg in "${PACKAGES[@]}"; do
+                    [ -n "$YES_FLAG" ] && sudo snap install --yes "$pkg" || sudo snap install "$pkg"
+                done
+                ;;
+            remove)
+                for pkg in "${PACKAGES[@]}"; do
+                    sudo snap remove "$pkg"
+                done
+                ;;
+            list)
+                snap list | tail -n +2 | awk '{print $1}'
+                ;;
+            search)
+                snap find "${PACKAGES[@]}"
+                ;;
+            *) usage ;;
+        esac
+        ;;
+    *)
+        echo "Ошибка: неизвестный менеджер пакетов: $MANAGER"
+        echo "Поддерживаемые менеджеры: pacman, yay, snap"
+        exit 1
+        ;;
+esac

@@ -48,6 +48,14 @@ sudo ./sm.sh --init
 ./sm.sh setgitignore dev
 ```
 
+## Поведение путей
+
+Все пути (скрипты в `scripts/`, бэкапы в `backups/`) отсчитываются от папки, где находится `sm.sh`, **независимо от текущей рабочей директории**.
+
+При глобальной установке через `--init` создаётся симлинк `/usr/local/bin/sm → sm.sh`. При вызове через него все пути также ведут к оригинальному `sm.sh`, а не к симлинку.
+
+Пути, указанные в файле `bcpdirs.txt`, также считаются **относительными к папке проекта** (там, где `sm.sh`).
+
 ## Команды
 
 ### Основные
@@ -56,51 +64,75 @@ sudo ./sm.sh --init
 sm                     # показать справку
 sm -h, --help          # показать справку
 
-sm --init              # установить как глобальную команду
+sm --init              # установить как глобальную команду (симлинк)
 ```
 
 ### Управление скриптами
 
 ```bash
 sm -c, -e, --create, --edit <name>   # создать/редактировать скрипт
-sm -r, --record <name>              # записать команды в скрипт
-sm ls [folder]                      # список скриптов
-sm x <name>                        # выполнить скрипт в папке утилиты
-sm call <name>                     # выполнить скрипт в текущей папке
-sm --cmd <command>                 # выполнить команду в папке утилиты
+sm -r, --record <name>               # записать команды в скрипт
+sm ls [folder]                       # список скриптов
+sm x <name>                          # выполнить скрипт в папке проекта
+sm call <name>                       # выполнить скрипт в текущей папке
+sm --cmd <command>                   # выполнить команду в папке проекта
 ```
+
+#### Разница между `x` и `call`
+
+- `sm x <name>` — запускает скрипт, **предварительно переходя в папку проекта** (`sm.sh`). Удобно, когда скрипт ожидает относительные пути относительно проекта.
+- `sm call <name>` — запускает скрипт **в текущей директории**. Удобно, когда скрипт должен работать с файлами там, где находится пользователь.
 
 ### Бэкапы
 
 ```bash
 sm bcp create -s|-r <name>    # создать пустой бэкап (-s: shallow, -r: recursive)
-sm bcp edit [-s|-r] <name>     # редактировать список директорий
+sm bcp edit [-s|-r] <name>    # редактировать список директорий (и опционально сменить режим)
+sm bcp set-mode -s|-r <name>  # сменить режим бэкапа без открытия редактора
 sm bcp backup <name>          # создать бэкап
-sm bcp restore <name>        # восстановить из бэкапа
+sm bcp restore <name>         # восстановить из бэкапа
 sm bcp delete <name>          # удалить бэкап
-sm bcp list                  # список бэкапов
+sm bcp list                   # список бэкапов
 ```
 
+#### Режимы бэкапа
+
+- `-s` / `shallow` — копируются только файлы верхнего уровня указанной директории (не рекурсивно).
+- `-r` / `recursive` — копируются все файлы рекурсивно, включая поддиректории.
+
+Режим задаётся при `create` и влияет на то, какой файл-образ используется:
+- `<name>.bcpdirs.txt` — для shallow
+- `<name>.bcpdirs.rec.txt` — для recursive
+
+`edit -r` / `edit -s` переименовывает файл-образ (меняет шаблонный режим) и открывает редактор.
+`set-mode -r` / `set-mode -s` только переименовывает файл, без открытия редактора.
+
+`<name>.backup.mode.txt` хранит режим **последнего выполненного бэкапа** и обновляется при `backup`.
+
 Бэкапы хранятся в папке `backups/`:
-- `<name>/` — файлы с уникальными именами
-- `<name>.bcp.json` — метаданные (время, хэши файлов)
-- `<name>.backup.mode.txt` — режим бэкапа (shallow/recursive)
-- `<name>.bcpdirs.txt` — shallow: список директорий для бэкапа
-- `<name>.bcpdirs.rec.txt` — recursive: список директорий для бэкапа
+- `<name>/` — файлы с уникальными именами (`hash.path.bcpf`)
+- `<name>.bcp.json` — метаданные (время, пути файлов)
+- `<name>.backup.mode.txt` — режим последнего бэкапа
+- `<name>.bcpdirs.txt` — shallow: список директорий
+- `<name>.bcpdirs.rec.txt` — recursive: список директорий
 
 ### Пакеты
 
 ```bash
 sm pkg <manager> install <packages>   # установить пакеты
-sm pkg <manager> remove <packages>   # удалить пакеты
-sm pkg <manager> list              # список пакетов
-sm pkg <manager> search <query>    # поиск пакетов
+sm pkg <manager> remove <packages>    # удалить пакеты
+sm pkg <manager> list                 # список пакетов
+sm pkg <manager> search <query>       # поиск пакетов
 ```
 
 Менеджеры: `pacman`, `yay`, `snap`
 
 Флаги:
 - `-y`, `--yes-all`, `--noconfirm` — без подтверждений
+
+Пакеты можно перечислять через пробел или запятую: `pkg pacman install vim,git nano`.
+
+Поиск использует нативную функцию менеджера (`pacman -Ss`, `yay -Ss`, `snap find`).
 
 ### Gitignore
 
@@ -117,10 +149,19 @@ sm -c myscript
 # Записать скрипт
 sm -r myscript
 
-# Создать бэкап папки smtools
-sm bcp create smtools-backup
+# Выполнить скрипт в папке проекта (независимо от текущей директории)
+sm x myscript
+
+# Выполнить скрипт в текущей папке
+sm call myscript
+
+# Создать рекурсивный бэкап папки smtools
+sm bcp create -r smtools-backup
 echo "smtools" | sm bcp edit smtools-backup
 sm bcp backup smtools-backup
+
+# Сменить режим бэкапа на shallow без редактирования списка
+sm bcp set-mode -s smtools-backup
 
 # Восстановить из бэкапа
 sm bcp restore smtools-backup
@@ -132,12 +173,12 @@ sm setgitignore dev
 ## Структура проекта
 
 ```
-sm.sh           # основной скрипт
-smtools/        # утилиты
-  bcp.sh       # менеджер бэкапов
-  pkg.sh      # менеджер пакетов
-scripts/       # ваши скрипты
-backups/        # бэкапы
-dev.gitignore  # шаблон gitignore для разработки
-user.gitignore # шаблон gitignore для пользователя
+sm.sh              # основной скрипт
+smtools/           # утилиты
+  bcp.sh          # менеджер бэкапов
+  pkg.sh          # менеджер пакетов
+scripts/           # ваши скрипты
+backups/           # бэкапы
+dev.gitignore      # шаблон gitignore для разработки
+user.gitignore     # шаблон gitignore для пользователя
 ```
