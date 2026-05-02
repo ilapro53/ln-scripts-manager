@@ -83,4 +83,4 @@ case "$MANAGER" in
         check_manager snap
         case "$CMD" in
             install)
-                for pkg in "${PACKAG
+                for pkg in "${PACKA
