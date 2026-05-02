@@ -1,2 +1,4 @@
 scripts/
 backups/
+__pycache__/
+*.pyc
