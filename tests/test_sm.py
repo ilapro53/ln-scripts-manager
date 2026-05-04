@@ -89,11 +89,11 @@ class TestSmCreateEdit:
 
     def test_edit_existing_script(self, workdir):
         run_sm(["-c", "test3"], workdir=workdir, input_data="#!/bin/bash\necho test\n")
-        assert Path(workdir / "test3.sh").read_text() == "#!/bin/bash\necho test\n"
+        assert Path(workdir / "scripts" / "test3.sh").read_text() == "#!/bin/bash\necho test\n"
         run_sm(["-e", "test3"], input_data="#!/bin/bash\necho edited\n", workdir=workdir)
-        assert Path(workdir / "test3.sh").read_text() == "#!/bin/bash\necho edited\n"
+        assert Path(workdir / "scripts" / "test3.sh").read_text() == "#!/bin/bash\necho edited\n"
         run_sm(["-e", "test3"], input_data="#!/bin/bash\necho edited_from_parent\n", workdir=workdir.parent)
-        assert Path(workdir / "test3.sh").read_text() == "#!/bin/bash\necho edited_from_parent\n"
+        assert Path(workdir / "scripts" / "test3.sh").read_text() == "#!/bin/bash\necho edited_from_parent\n"
 
     def test_create_without_name_shows_error(self, workdir):
         result = run_sm(["-c"], check=False, workdir=workdir)
