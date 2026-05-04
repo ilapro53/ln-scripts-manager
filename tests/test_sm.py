@@ -58,7 +58,10 @@ def run(cmd, check=True, input_data=None, cwd=None):
 
 
 def run_sm(args, workdir=None, **kw):
-    cwd = str(workdir) if workdir else None
+    if workdir and args and args[0] == "bcp":
+        cwd = str(SCRIPT_DIR)
+    else:
+        cwd = str(workdir) if workdir else None
     return run([str(SM)] + args, cwd=cwd, **kw)
 
 
@@ -340,6 +343,30 @@ class TestBcpEdit:
         assert "test_data" in content
 
 
+class TestSmBcpEdit:
+    def test_edit_changes_template_mode(self, workdir):
+        run_sm(["bcp", "create", "-s", "be1"], workdir=str(workdir))
+        run_sm(["bcp", "edit", "-r", "be1"], workdir=str(workdir), input_data="test_data\n")
+        assert (SCRIPT_DIR / "backups/be1.bcpdirs.rec.txt").exists()
+        assert not (SCRIPT_DIR / "backups/be1.bcpdirs.txt").exists()
+
+    def test_edit_preserves_backup_mode(self, workdir):
+        run_sm(["bcp", "create", "-s", "be2"], workdir=str(workdir))
+        run_sm(["bcp", "edit", "-r", "be2"], workdir=str(workdir), input_data="test_data\n")
+        assert (SCRIPT_DIR / "backups/be2.backup.mode.txt").read_text().strip() == "shallow"
+
+    def test_edit_adds_directories(self, workdir):
+        run_sm(["bcp", "create", "-s", "be3"], workdir=str(workdir))
+        run_sm(["bcp", "edit", "be3"], workdir=str(workdir), input_data="test_data\n")
+        content = (SCRIPT_DIR / "backups/be3.bcpdirs.txt").read_text()
+        assert "test_data" in content
+
+    def test_edit_from_other_dir(self, workdir):
+        run_sm(["bcp", "create", "-s", "be4o"], workdir=str(workdir.parent))
+        run_sm(["bcp", "edit", "be4o"], workdir=str(workdir.parent), input_data="test_data\n")
+        assert (SCRIPT_DIR / "backups/be4o.bcpdirs.txt").exists()
+
+
 class TestBcpBackup:
     @pytest.fixture(autouse=True)
     def setup(self, workdir):
@@ -386,6 +413,42 @@ class TestBcpBackup:
         assert first_files != second_files
 
 
+class TestSmBcpBackup:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        (SCRIPT_DIR / "test_data").mkdir(exist_ok=True)
+        (SCRIPT_DIR / "test_data/file1.sh").write_text("content1")
+        (SCRIPT_DIR / "test_data/subdir").mkdir(exist_ok=True)
+        (SCRIPT_DIR / "test_data/subdir/file2.sh").write_text("content2")
+        yield
+        shutil.rmtree(SCRIPT_DIR / "test_data", ignore_errors=True)
+
+    def test_backup_shallow_only_toplevel(self, workdir):
+        run_sm(["bcp", "create", "-s", "bb1"], workdir=str(workdir))
+        run_sm(["bcp", "edit", "bb1"], workdir=str(workdir), input_data="test_data\n")
+        run_sm(["bcp", "backup", "bb1"], workdir=str(workdir))
+        files = list((SCRIPT_DIR / "backups/bb1").iterdir())
+        paths = [f.name for f in files]
+        assert any("test_data_file1.sh" in p for p in paths)
+        assert not any(p.startswith("test_data_subdir") for p in paths)
+        assert not any("subdir" in p for p in paths)
+
+    def test_backup_recursive_includes_subdirs(self, workdir):
+        run_sm(["bcp", "create", "-r", "bb2"], workdir=str(workdir))
+        run_sm(["bcp", "edit", "bb2"], workdir=str(workdir), input_data="test_data\n")
+        run_sm(["bcp", "backup", "bb2"], workdir=str(workdir))
+        files = list((SCRIPT_DIR / "backups/bb2").iterdir())
+        paths = [f.name for f in files]
+        assert any("test_data_file1.sh" in p for p in paths)
+        assert any("test_data_subdir_file2.sh" in p for p in paths)
+
+    def test_backup_from_other_dir(self, workdir):
+        run_sm(["bcp", "create", "-s", "bb3o"], workdir=str(workdir.parent))
+        run_sm(["bcp", "edit", "bb3o"], workdir=str(workdir.parent), input_data="test_data\n")
+        run_sm(["bcp", "backup", "bb3o"], workdir=str(workdir.parent))
+        assert (SCRIPT_DIR / "backups/bb3o").exists()
+
+
 class TestBcpRestore:
     @pytest.fixture(autouse=True)
     def setup(self, workdir):
@@ -417,6 +480,35 @@ class TestBcpRestore:
         assert not (self.workdir / "test_data/subdir/nested/file3.sh").exists()
 
 
+class TestSmBcpRestore:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        (SCRIPT_DIR / "test_data").mkdir(exist_ok=True)
+        (SCRIPT_DIR / "test_data/file1.sh").write_text("content1")
+        (SCRIPT_DIR / "test_data/subdir").mkdir(exist_ok=True)
+        (SCRIPT_DIR / "test_data/subdir/file2.sh").write_text("content2")
+        (SCRIPT_DIR / "test_data/subdir/nested").mkdir(exist_ok=True)
+        (SCRIPT_DIR / "test_data/subdir/nested/file3.sh").write_text("content3")
+        yield
+        shutil.rmtree(SCRIPT_DIR / "test_data", ignore_errors=True)
+
+    def test_restore_creates_directories(self, workdir):
+        run_sm(["bcp", "create", "-r", "br1"], workdir=str(workdir))
+        run_sm(["bcp", "edit", "br1"], workdir=str(workdir), input_data="test_data\n")
+        run_sm(["bcp", "backup", "br1"], workdir=str(workdir))
+        shutil.rmtree(SCRIPT_DIR / "test_data")
+        run_sm(["bcp", "restore", "br1"], workdir=str(workdir))
+        assert (SCRIPT_DIR / "test_data/subdir/nested/file3.sh").exists()
+
+    def test_restore_from_other_dir(self, workdir):
+        run_sm(["bcp", "create", "-s", "br2o"], workdir=str(workdir.parent))
+        run_sm(["bcp", "edit", "br2o"], workdir=str(workdir.parent), input_data="test_data\n")
+        run_sm(["bcp", "backup", "br2o"], workdir=str(workdir.parent))
+        shutil.rmtree(SCRIPT_DIR / "test_data")
+        run_sm(["bcp", "restore", "br2o"], workdir=str(workdir.parent))
+        assert (SCRIPT_DIR / "test_data/file1.sh").exists()
+
+
 class TestBcpDelete:
     def test_delete_removes_all_files(self, workdir):
         run_bcp(["-d", str(workdir), "create", "-s", "b14"])
@@ -429,6 +521,20 @@ class TestBcpDelete:
         assert not (workdir / "backups/b14").exists()
 
 
+class TestSmBcpDelete:
+    def test_delete_removes_all_files(self, workdir):
+        run_sm(["bcp", "create", "-s", "bd1"], workdir=str(workdir))
+        run_sm(["bcp", "edit", "bd1"], workdir=str(workdir), input_data="test_data\n")
+        run_sm(["bcp", "backup", "bd1"], workdir=str(workdir))
+        run_sm(["bcp", "delete", "bd1"], workdir=str(workdir))
+        assert not (SCRIPT_DIR / "backups/bd1.bcpdirs.txt").exists()
+
+    def test_delete_from_other_dir(self, workdir):
+        run_sm(["bcp", "create", "-s", "bd2o"], workdir=str(workdir.parent))
+        run_sm(["bcp", "delete", "bd2o"], workdir=str(workdir.parent))
+        assert not (SCRIPT_DIR / "backups/bd2o.bcpdirs.txt").exists()
+
+
 class TestBcpList:
     def test_list_shows_all_backups_with_mode(self, workdir):
         run_bcp(["-d", str(workdir), "create", "-s", "b15"])
@@ -436,6 +542,20 @@ class TestBcpList:
         result = run_bcp(["-d", str(workdir), "list"])
         assert "b15" in result.stdout
         assert "b16" in result.stdout
+
+
+class TestSmBcpList:
+    def test_list_shows_all_backups_with_mode(self, workdir):
+        run_sm(["bcp", "create", "-s", "bl1"], workdir=str(workdir))
+        run_sm(["bcp", "create", "-r", "bl2"], workdir=str(workdir))
+        result = run_sm(["bcp", "list"], workdir=str(workdir))
+        assert "bl1" in result.stdout
+        assert "bl2" in result.stdout
+
+    def test_list_from_other_dir(self, workdir):
+        run_sm(["bcp", "create", "-s", "bl3o"], workdir=str(workdir.parent))
+        result = run_sm(["bcp", "list"], workdir=str(workdir.parent))
+        assert "bl3o" in result.stdout
 
 
 class TestPkgUsage:
