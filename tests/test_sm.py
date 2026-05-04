@@ -159,6 +159,10 @@ class TestSmExecution:
         (SCRIPT_DIR / "scripts" / "exec_test.sh").chmod(0o755)
         result = run_sm(["x", "exec_test"], workdir=workdir)
         assert "EXEC_OUTPUT" in result.stdout
+        run_sm(["-c", "exec_test2"], workdir=workdir, input_data="#!/bin/bash\necho EXEC_OUTPUT2\n")
+        (SCRIPT_DIR / "scripts" / "exec_test2.sh").chmod(0o755)
+        result = run_sm(["x", "exec_test2"], workdir=workdir.parent)
+        assert "EXEC_OUTPUT2" in result.stdout
 
     def test_call_requires_name(self, workdir):
         result = run_sm(["call"], check=False, workdir=workdir)
