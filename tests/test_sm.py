@@ -87,7 +87,7 @@ class TestSmCreateEdit:
             workdir=workdir.parent, input_data="#!/bin/bash\necho test_create_script_in_subfolder_from_another_folder\n"
         )
         assert (SCRIPT_DIR / "scripts" / "test_create_script_in_subfolder_from_another_folder_folder1" / "test_create_script_in_subfolder_from_another_folder.sh").exists()
-        assert Path(SCRIPT_DIR / "scripts" / "test_create_script_in_subfolder_from_another_folder.sh").read_text() == "#!/bin/bash\necho test_create_script_in_subfolder_from_another_folder\n"
+        assert Path(SCRIPT_DIR / "scripts" / "test_create_script_in_subfolder_from_another_folder_folder1" / "test_create_script_in_subfolder_from_another_folder.sh").read_text() == "#!/bin/bash\necho test_create_script_in_subfolder_from_another_folder\n
 
     def test_empty_script_removes_on_exit(self, workdir):
         run_sm(
