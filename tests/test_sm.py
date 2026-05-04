@@ -267,7 +267,7 @@ class TestBcpCreate:
     def test_create_shallow_creates_files(self, workdir):
         run_bcp(["-d", str(workdir), "create", "-s", "b1"])
         assert (workdir / "backups/b1.bcpdirs.txt").exists()
-        assert not (workdir / "backups/b1.bcpdirs.txt").exists()
+        assert not (workdir / "backups/b1.bcpdirs.rec.txt").exists()
         assert (workdir / "backups/b1.backup.mode.txt").read_text().strip() == "shallow"
 
     def test_create_recursive_creates_files(self, workdir):
@@ -290,7 +290,7 @@ class TestSmBcpCreate:
     def test_create_shallow_creates_files(self, workdir):
         run_sm(["bcp", "create", "-s", "b1"], workdir=str(workdir))
         assert (SCRIPT_DIR / "backups/b1.bcpdirs.txt").exists()
-        assert not (SCRIPT_DIR / "backups/b1.bcpdirs.txt").exists()
+        assert not (SCRIPT_DIR / "backups/b1.bcpdirs.rec.txt").exists()
         assert (SCRIPT_DIR / "backups/b1.backup.mode.txt").read_text().strip() == "shallow"
 
     def test_create_recursive_creates_files(self, workdir):
@@ -302,7 +302,7 @@ class TestSmBcpCreate:
     def test_create_shallow_creates_files_from_other_dir(self, workdir):
         run_sm(["bcp", "create", "-s", "b1o"], workdir=str(workdir.parent))
         assert (SCRIPT_DIR / "backups/b1o.bcpdirs.txt").exists()
-        assert not (SCRIPT_DIR / "backups/b1o.bcpdirs.txt").exists()
+        assert not (SCRIPT_DIR / "backups/b1o.bcpdirs.rec.txt").exists()
         assert (SCRIPT_DIR / "backups/b1o.backup.mode.txt").read_text().strip() == "shallow"
 
     def test_create_recursive_creates_files_from_other_dir(self, workdir):
