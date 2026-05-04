@@ -363,8 +363,8 @@ class TestSmBcpEdit:
 
     def test_edit_from_other_dir(self, workdir):
         run_sm(["bcp", "create", "-r", "be4o"], workdir=str(workdir))
-        run_sm(["bcp", "edit", "-s", "be4o"], workdir=str(workdir.parent), input_data="test_data\n")
-        assert (SCRIPT_DIR / "backups/be4o.bcpdirs.txt").exists()
+        run_sm(["bcp", "edit", "be4o"], workdir=str(workdir.parent), input_data="test_data be4o\n")
+        assert (SCRIPT_DIR / "backups/be4o.bcpdirs.txt").read_text() == "test_data be4o\n"
 
 
 class TestBcpBackup:
