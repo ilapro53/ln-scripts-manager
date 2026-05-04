@@ -186,7 +186,7 @@ class TestSmCmd:
         result2 = run_sm(["--cmd", "pwd"], check=False, workdir=workdir.parent)
         assert result1.stdout == result2.stdout
         result3 = run_sm(["--cmd", "ls"], check=False, workdir=workdir.parent)
-        assert "sm.sh" in result1.stdout
+        assert "sm.sh" in result3.stdout
 
     def test_cmd_requires_command(self, workdir):
         result = run_sm(["--cmd"], check=False, workdir=workdir)
