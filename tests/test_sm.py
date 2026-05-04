@@ -88,6 +88,14 @@ class TestSmCreateEdit:
         assert result.returncode != 0
         assert "Укажите" in result.stdout
 
+    def test_create_script_in_root_from_another_folder(self, workdir):
+        run_sm(["-c", "test_another1"], workdir=workdir.parent, input_data="#!/bin/bash\necho test\n")
+        assert (SCRIPT_DIR / "scripts" / "test_another1.sh").exists()
+
+    def test_create_script_in_subfolder_from_another_folder(self, workdir):
+        run_sm(["-c", "folder2/test_another2"], workdir=workdir.parent, input_data="#!/bin/bash\necho test\n")
+        assert (SCRIPT_DIR / "scripts" / "folder2" / "test_another2.sh").exists()
+
 
 class TestSmLs:
     def test_ls_empty(self, workdir):
