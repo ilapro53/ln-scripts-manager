@@ -164,6 +164,13 @@ class TestSmExecution:
         result = run_sm(["x", "exec_test2"], workdir=workdir.parent)
         assert "EXEC_OUTPUT2" in result.stdout
 
+    def test_call_executes_in_current_dir(self, workdir):
+        run_sm(["-c", "call_test"], workdir=workdir, input_data="#!/bin/bash\npwd\n")
+        (SCRIPT_DIR / "scripts" / "call_test.sh").chmod(0o755)
+        result = run_sm(["x", "call_test"], workdir=workdir)
+        result2 = run_sm(["x", "call_test"], workdir=workdir.parent)
+        assert result1 != result2
+
     def test_call_requires_name(self, workdir):
         result = run_sm(["call"], check=False, workdir=workdir)
         assert result.returncode != 0
