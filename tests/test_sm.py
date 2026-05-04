@@ -267,7 +267,6 @@ class TestBcpCreate:
     def test_create_shallow_creates_files(self, workdir):
         run_bcp(["-d", str(workdir), "create", "-s", "b1"])
         assert (workdir / "backups/b1.bcpdirs.txt").exists()
-        assert (workdir / "backups/b1.backup.mode.txt").exists()
         assert not (workdir / "backups/b1.bcpdirs.rec.txt").exists()
         assert (workdir / "backups/b1.backup.mode.txt").read_text().strip() == "shallow"
 
@@ -276,6 +275,18 @@ class TestBcpCreate:
         assert (workdir / "backups/b2.bcpdirs.rec.txt").exists()
         assert not (workdir / "backups/b2.bcpdirs.txt").exists()
         assert (workdir / "backups/b2.backup.mode.txt").read_text().strip() == "recursive"
+
+    def test_create_shallow_creates_files_from_other_dir(self, workdir):
+        run_bcp(["-d", str(workdir.parent), "create", "-s", "b1o"])
+        assert (workdir / "backups/b1o.bcpdirs.rec.txt").exists()
+        assert not (workdir / "backups/b1o.bcpdirs.txt").exists()
+        assert (workdir / "backups/b1o.backup.mode.txt").read_text().strip() == "shallow"
+
+    def test_create_recursive_creates_files_from_other_dir(self, workdir):
+        run_bcp(["-d", str(workdir.parent), "create", "-r", "b2o"])
+        assert (workdir / "backups/b2o.bcpdirs.rec.txt").exists()
+        assert not (workdir / "backups/b2o.bcpdirs.txt").exists()
+        assert (workdir / "backups/b2o.backup.mode.txt").read_text().strip() == "recursive"
 
     def test_create_requires_mode(self, workdir):
         result = run_bcp(["-d", str(workdir), "create", "b3"], check=False)
