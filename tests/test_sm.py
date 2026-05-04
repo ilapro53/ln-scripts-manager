@@ -169,7 +169,7 @@ class TestSmExecution:
         (SCRIPT_DIR / "scripts" / "call_test.sh").chmod(0o755)
         result = run_sm(["x", "call_test"], workdir=workdir)
         result2 = run_sm(["x", "call_test"], workdir=workdir.parent)
-        assert result1 != result2
+        assert result != result2
 
     def test_call_requires_name(self, workdir):
         result = run_sm(["call"], check=False, workdir=workdir)
