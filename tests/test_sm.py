@@ -69,23 +69,37 @@ def run_bcp(args, workdir=None, **kw):
 
 class TestSmCreateEdit:
     def test_create_script_in_root(self, workdir):
-        run_sm(["-c", "test1"], workdir=workdir, input_data="#!/bin/bash\necho test\n")
-        assert (SCRIPT_DIR / "scripts" / "test1.sh").exists()
+        run_sm(["-c", "test_create_script_in_root"], workdir=workdir, input_data="#!/bin/bash\necho test\n")
+        assert (SCRIPT_DIR / "scripts" / "test_create_script_in_root.sh").exists()
 
     def test_create_script_in_subfolder(self, workdir):
-        run_sm(["-c", "folder1/test2"], workdir=workdir, input_data="#!/bin/bash\necho test\n")
-        assert (SCRIPT_DIR / "scripts" / "folder1" / "test2.sh").exists()
+        run_sm(["-c", "test_create_script_in_subfolder_folder1/test_create_script_in_subfolder"], workdir=workdir, input_data="#!/bin/bash\necho test\n")
+        assert (SCRIPT_DIR / "scripts" / "test_create_script_in_subfolder_folder1" / "test_create_script_in_subfolder.sh").exists()
 
     def test_create_script_in_root_from_another_folder(self, workdir):
-        run_sm(["-c", "test_another1"], workdir=workdir.parent, input_data="#!/bin/bash\necho test\n")
-        assert (SCRIPT_DIR / "scripts" / "test_another1.sh").exists()
+        run_sm(["-c", "test_create_script_in_root_from_another_folder"], workdir=workdir.parent, input_data="#!/bin/bash\necho test_create_script_in_root_from_another_folder\n")
+        assert (SCRIPT_DIR / "scripts" / "test_create_script_in_root_from_another_folder.sh").exists()
+        assert Path(SCRIPT_DIR / "scripts" / "test_create_script_in_root_from_another_folder.sh").read_text() == "#!/bin/bash\necho test_create_script_in_root_from_another_folder\n"
 
     def test_create_script_in_subfolder_from_another_folder(self, workdir):
-        run_sm(["-c", "folder2/test_another2"], workdir=workdir.parent, input_data="#!/bin/bash\necho test\n")
-        assert (SCRIPT_DIR / "scripts" / "folder2" / "test_another2.sh").exists()
+        run_sm(
+            ["-c", "test_create_script_in_subfolder_from_another_folder_folder1/test_create_script_in_subfolder_from_another_folder"], 
+            workdir=workdir.parent, input_data="#!/bin/bash\necho test_create_script_in_subfolder_from_another_folder\n"
+        )
+        assert (SCRIPT_DIR / "scripts" / "test_create_script_in_subfolder_from_another_folder_folder1" / "test_create_script_in_subfolder_from_another_folder.sh").exists()
+        assert Path(SCRIPT_DIR / "scripts" / "test_create_script_in_subfolder_from_another_folder.sh").read_text() == "#!/bin/bash\necho test_create_script_in_subfolder_from_another_folder\n"
 
     def test_empty_script_removes_on_exit(self, workdir):
-        pass
+        run_sm(
+            ["-c", "test_empty_script_removes_on_exit_folder1/test_empty_script_removes_on_exit"], 
+            workdir=workdir.parent, input_data="#!/bin/bash\n"
+        )
+        assert not (SCRIPT_DIR / "scripts" / "test_empty_script_removes_on_exit_folder1" / "test_empty_script_removes_on_exit.sh").exists()
+        run_sm(
+            ["-c", "test_empty_script_removes_on_exit_folder1/test_empty_script_removes_on_exit"], 
+            workdir=workdir.parent, input_data=""
+        )
+        assert not (SCRIPT_DIR / "scripts" / "test_empty_script_removes_on_exit_folder1" / "test_empty_script_removes_on_exit.sh").exists()
 
     def test_edit_existing_script(self, workdir):
         run_sm(["-c", "test3"], workdir=workdir, input_data="#!/bin/bash\necho test\n")
