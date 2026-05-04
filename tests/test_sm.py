@@ -266,27 +266,15 @@ class TestSmSetgitignore:
 class TestBcpCreate:
     def test_create_shallow_creates_files(self, workdir):
         run_bcp(["-d", str(workdir), "create", "-s", "b1"])
-        assert (SCRIPT_DIR / "backups/b1.bcpdirs.txt").exists()
-        assert not (SCRIPT_DIR / "backups/b1.bcpdirs.rec.txt").exists()
-        assert (SCRIPT_DIR / "backups/b1.backup.mode.txt").read_text().strip() == "shallow"
+        assert (workdir / "backups/b1.bcpdirs.txt").exists()
+        assert not (workdir / "backups/b1.bcpdirs.rec.txt").exists()
+        assert (workdir / "backups/b1.backup.mode.txt").read_text().strip() == "shallow"
 
     def test_create_recursive_creates_files(self, workdir):
         run_bcp(["-d", str(workdir), "create", "-r", "b2"])
-        assert (SCRIPT_DIR / "backups/b2.bcpdirs.rec.txt").exists()
-        assert not (SCRIPT_DIR / "backups/b2.bcpdirs.txt").exists()
-        assert (SCRIPT_DIR / "backups/b2.backup.mode.txt").read_text().strip() == "recursive"
-
-    def test_create_shallow_creates_files_from_other_dir(self, workdir):
-        run_bcp(["-d", str(workdir.parent), "create", "-s", "b1o"])
-        assert (SCRIPT_DIR / "backups/b1o.bcpdirs.rec.txt").exists()
-        assert not (SCRIPT_DIR / "backups/b1o.bcpdirs.txt").exists()
-        assert (SCRIPT_DIR / "backups/b1o.backup.mode.txt").read_text().strip() == "shallow"
-
-    def test_create_recursive_creates_files_from_other_dir(self, workdir):
-        run_bcp(["-d", str(workdir.parent), "create", "-r", "b2o"])
-        assert (SCRIPT_DIR / "backups/b2o.bcpdirs.rec.txt").exists()
-        assert not (SCRIPT_DIR / "backups/b2o.bcpdirs.txt").exists()
-        assert (SCRIPT_DIR / "backups/b2o.backup.mode.txt").read_text().strip() == "recursive"
+        assert (workdir / "backups/b2.bcpdirs.rec.txt").exists()
+        assert not (workdir / "backups/b2.bcpdirs.txt").exists()
+        assert (workdir / "backups/b2.backup.mode.txt").read_text().strip() == "recursive"
 
     def test_create_requires_mode(self, workdir):
         result = run_bcp(["-d", str(workdir), "create", "b3"], check=False)
@@ -295,6 +283,41 @@ class TestBcpCreate:
     def test_create_duplicate_fails(self, workdir):
         run_bcp(["-d", str(workdir), "create", "-s", "b4"])
         result = run_bcp(["-d", str(workdir), "create", "-s", "b4"], check=False)
+        assert "Уже существует" in result.stdout
+
+
+class TestSmBcpCreate:
+    def test_create_shallow_creates_files(self, workdir):
+        run_sm(["bcp", "create", "-s", "b1"], workdir=str(workdir))
+        assert (SCRIPT_DIR / "backups/b1.bcpdirs.txt").exists()
+        assert not (SCRIPT_DIR / "backups/b1.bcpdirs.rec.txt").exists()
+        assert (SCRIPT_DIR / "backups/b1.backup.mode.txt").read_text().strip() == "shallow"
+
+    def test_create_recursive_creates_files(self, workdir):
+        run_sm(["bcp", "create", "-r", "b2"], workdir=str(workdir))
+        assert (SCRIPT_DIR / "backups/b2.bcpdirs.rec.txt").exists()
+        assert not (SCRIPT_DIR / "backups/b2.bcpdirs.txt").exists()
+        assert (SCRIPT_DIR / "backups/b2.backup.mode.txt").read_text().strip() == "recursive"
+
+    def test_create_shallow_creates_files_from_other_dir(self, workdir):
+        run_sm(["bcp", "create", "-s", "b1o"], workdir=str(workdir.parent))
+        assert (SCRIPT_DIR / "backups/b1o.bcpdirs.rec.txt").exists()
+        assert not (SCRIPT_DIR / "backups/b1o.bcpdirs.txt").exists()
+        assert (SCRIPT_DIR / "backups/b1o.backup.mode.txt").read_text().strip() == "shallow"
+
+    def test_create_recursive_creates_files_from_other_dir(self, workdir):
+        run_sm(["bcp", "create", "-r", "b2o"], workdir=str(workdir.parent))
+        assert (SCRIPT_DIR / "backups/b2o.bcpdirs.rec.txt").exists()
+        assert not (SCRIPT_DIR / "backups/b2o.bcpdirs.txt").exists()
+        assert (SCRIPT_DIR / "backups/b2o.backup.mode.txt").read_text().strip() == "recursive"
+
+    def test_create_requires_mode(self, workdir):
+        result = run_sm(["bcp", "create", "b3"], check=False, workdir=str(workdir))
+        assert "Укажите режим" in result.stdout
+
+    def test_create_duplicate_fails(self, workdir):
+        run_sm(["bcp", "create", "-s", "b4"], workdir=str(workdir))
+        result = run_sm(["bcp", "create", "-s", "b4"], check=False)
         assert "Уже существует" in result.stdout
 
 
