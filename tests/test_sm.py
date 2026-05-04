@@ -169,7 +169,7 @@ class TestSmExecution:
         (SCRIPT_DIR / "scripts" / "call_test.sh").chmod(0o755)
         result = run_sm(["x", "call_test"], workdir=workdir)
         result2 = run_sm(["x", "call_test"], workdir=workdir.parent)
-        assert result != result2
+        assert result.stdout != result2.stdout
 
     def test_call_requires_name(self, workdir):
         result = run_sm(["call"], check=False, workdir=workdir)
@@ -182,7 +182,11 @@ class TestSmExecution:
 
 class TestSmCmd:
     def test_cmd_runs_in_project_dir(self, workdir):
-        pass
+        result1 = run_sm(["--cmd", "pwd"], check=False, workdir=workdir)
+        result2 = run_sm(["--cmd", "pwd"], check=False, workdir=workdir.parent)
+        assert result1.stdout == result2.stdout
+        result3 = run_sm(["--cmd", "ls"], check=False, workdir=workdir.parent)
+        assert "sm.sh" in result1.stdout
 
     def test_cmd_requires_command(self, workdir):
         result = run_sm(["--cmd"], check=False, workdir=workdir)
