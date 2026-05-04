@@ -76,18 +76,6 @@ class TestSmCreateEdit:
         run_sm(["-c", "folder1/test2"], workdir=workdir, input_data="#!/bin/bash\necho test\n")
         assert (SCRIPT_DIR / "scripts" / "folder1" / "test2.sh").exists()
 
-    def test_empty_script_removes_on_exit(self, workdir):
-        pass
-
-    def test_edit_existing_script(self, workdir):
-        run_sm(["-c", "test3"], workdir=workdir, input_data="#!/bin/bash\necho test\n")
-        run_sm(["-e", "test3"], input_data="#!/bin/bash\necho edited\n", workdir=workdir)
-
-    def test_create_without_name_shows_error(self, workdir):
-        result = run_sm(["-c"], check=False, workdir=workdir)
-        assert result.returncode != 0
-        assert "Укажите" in result.stdout
-
     def test_create_script_in_root_from_another_folder(self, workdir):
         run_sm(["-c", "test_another1"], workdir=workdir.parent, input_data="#!/bin/bash\necho test\n")
         assert (SCRIPT_DIR / "scripts" / "test_another1.sh").exists()
@@ -95,6 +83,22 @@ class TestSmCreateEdit:
     def test_create_script_in_subfolder_from_another_folder(self, workdir):
         run_sm(["-c", "folder2/test_another2"], workdir=workdir.parent, input_data="#!/bin/bash\necho test\n")
         assert (SCRIPT_DIR / "scripts" / "folder2" / "test_another2.sh").exists()
+
+    def test_empty_script_removes_on_exit(self, workdir):
+        pass
+
+    def test_edit_existing_script(self, workdir):
+        run_sm(["-c", "test3"], workdir=workdir, input_data="#!/bin/bash\necho test\n")
+        assert Path(workdir / "test3.sh").read_text() == "#!/bin/bash\necho test\n"
+        run_sm(["-e", "test3"], input_data="#!/bin/bash\necho edited\n", workdir=workdir)
+        assert Path(workdir / "test3.sh").read_text() == "#!/bin/bash\necho edited\n"
+        run_sm(["-e", "test3"], input_data="#!/bin/bash\necho edited_from_parent\n", workdir=workdir.parent)
+        assert Path(workdir / "test3.sh").read_text() == "#!/bin/bash\necho edited_from_parent\n"
+
+    def test_create_without_name_shows_error(self, workdir):
+        result = run_sm(["-c"], check=False, workdir=workdir)
+        assert result.returncode != 0
+        assert "Укажите" in result.stdout
 
 
 class TestSmLs:
