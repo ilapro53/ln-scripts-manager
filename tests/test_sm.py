@@ -122,13 +122,26 @@ class TestSmLs:
     def test_ls_with_scripts(self, workdir):
         run_sm(["-c", "ls1"], workdir=workdir, input_data="#!/bin/bash\necho 1\n")
         run_sm(["-c", "ls2"], workdir=workdir, input_data="#!/bin/bash\necho 2\n")
+        run_sm(["-c", "ls3"], workdir=workdir.parent, input_data="#!/bin/bash\necho 3\n")
         result = run_sm(["ls"], workdir=workdir)
-        assert "ls1" in result.stdout or "ls2" in result.stdout
+        assert "ls1" in result.stdout
+        assert "ls2" in result.stdout
+        assert "ls3" in result.stdout
+        assert not ("/ls1" in result.stdout)
+        assert not ("/ls2" in result.stdout)
+        assert not ("/ls3" in result.stdout)
 
     def test_ls_with_subfolder_filter(self, workdir):
-        run_sm(["-c", "sub/ls3"], workdir=workdir, input_data="#!/bin/bash\necho 3\n")
+        run_sm(["-c", "sub/ls4"], workdir=workdir, input_data="#!/bin/bash\necho 4\n")
+        run_sm(["-c", "sub/sub2/ls5"], workdir=workdir, input_data="#!/bin/bash\necho 5\n")
+        run_sm(["-c", "sub/sub2/ls6"], workdir=workdir.parent, input_data="#!/bin/bash\necho 6\n")
         result = run_sm(["ls", "sub"], workdir=workdir)
-        assert "sub/ls3" in result.stdout or "ls3" in result.stdout
+        result2 = run_sm(["ls", "sub/sub2"], workdir=workdir)
+        assert "ls4" in result.stdout
+        assert "ls5" in result.stdout
+        assert not ("ls4" in result2.stdout)
+        assert "ls5" in result2.stdout
+        assert "ls6" in result2.stdout
 
 
 class TestSmRecord:
